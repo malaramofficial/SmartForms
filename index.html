@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en"> 
+ <head> 
+  <meta charset="UTF-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <title>Application Form to PDF</title> 
+  <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f4f8; /* Light background */
+            transition: background-color 0.3s; /* Smooth transition for dark mode */
+        }
+        h1 {
+            font-size: 28px;
+            color: #333;
+            text-align: center; /* Center the title */
+            margin-bottom: 20px;
+        }
+        /* Input and Textarea Styles */
+        input, textarea {
+            width: 100%;
+            max-width: 700px;
+            padding: 15px;
+            font-size: 16px;
+            margin-top: 10px;
+            border-radius: 10px;
+            border: none;
+            background: #ffffff; /* White background */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Flat design shadow */
+            transition: all 0.3s ease; /* Smooth transition */
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.5); /* Focus effect */
+        }
+        .button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(45deg, #007bff, #0056b3); /* Gradient background */
+            color: #fff; /* Text color */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Shadow */
+            transition: all 0.3s ease; /* Smooth transition */
+        }
+        .button:hover {
+            background: linear-gradient(45deg, #0056b3, #007bff); /* Darker shade on hover */
+            transform: translateY(-2px); /* Lift effect */
+        }
+        /* PDF layout style */
+        #pdf-content {
+            display: none;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm;
+            background: white;
+            color: black;
+            font-size: 16px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Shadow effect */
+        }
+        /* Preview area style */
+        #preview-content {
+            display: none;
+            width: 100%;
+            max-width: 700px;
+            margin-top: 20px;
+            padding: 10px;
+            background: #ffffff;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Shadow */
+        }
+        /* Footer styles */
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        /* Centering the titles */
+        #pdf-content h1, #preview-content h2 {
+            text-align: center; /* Center align the titles */
+            margin: 0; /* Remove default margins */
+        }
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #333; /* Dark background */
+            color: #f5f5f5; /* Light text */
+        }
+        input.dark-mode, textarea.dark-mode {
+            background: #555; /* Dark input background */
+            color: #f5f5f5; /* Light input text */
+        }
+        /* Toggle button styles */
+        .toggle-button {
+            margin: 10px;
+            padding: 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .toggle-button:hover {
+            background: #0056b3;
+        }
+        /* Media Queries for Responsiveness */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 24px; /* Smaller title on mobile */
+            }
+            .button {
+                width: 100%; /* Full-width buttons on mobile */
+            }
+        }
+    </style> 
+ </head> 
+ <body> 
+  <h1>SmartForms</h1> 
+  <p>सपनों की उड़ान, बस एक क्लिक में जान!</p> <!-- Toggle for Dark Mode --> <button class="toggle-button" onclick="toggleDarkMode()">Toggle Dark Mode</button> <!-- Input for document title --> 
+  <input type="text" id="documentTitle" placeholder="Enter your document title here..." required> <!-- Text area for input --> <textarea id="applicationText" placeholder="Enter your application form text here..." required></textarea> <!-- Buttons for PDF generation and preview --> <button class="button" onclick="generatePDF()">Generate PDF</button> <button class="button" onclick="previewContent()">Preview</button> <!-- Preview content area --> 
+  <div id="preview-content"> 
+   <h2 id="previewTitle"></h2> <!-- Title will be shown here --> 
+   <p id="previewFormContent"></p> <!-- Preview text will be shown here --> 
+  </div> <!-- Hidden PDF content --> 
+  <div id="pdf-content"> 
+   <h1 id="pdfTitle"></h1> <!-- Title will be set here --> 
+   <p id="formContent"></p> 
+  </div> <!-- Include html2pdf library --> 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script> <!-- JavaScript for generating PDF and previewing content --> 
+  <script>
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const inputs = document.querySelectorAll('input, textarea');
+            inputs.forEach(input => input.classList.toggle('dark-mode'));
+        }
+
+        function validateInput() {
+            const title = document.getElementById("documentTitle").value.trim();
+            const applicationText = document.getElementById("applicationText").value.trim();
+            if (!title || !applicationText) {
+                alert("Please fill in both the title and the application text.");
+                return false;
+            }
+            return true;
+        }
+
+        window.onload = function() {
+            window.generatePDF = function() {
+                if (!validateInput()) return;
+
+                // Get the content from the textarea
+                const applicationText = document.getElementById("applicationText").value;
+                const formContent = document.getElementById("formContent");
+                formContent.innerText = applicationText; // Set the textarea content in the PDF layout
+
+                // Get the document title from the input
+                const documentTitle = document.getElementById("documentTitle").value;
+                const pdfTitle = document.getElementById("pdfTitle");
+                pdfTitle.innerText = documentTitle || "Application Form"; // Default title if none provided
+
+                // Display the PDF content div
+                const pdfContent = document.getElementById("pdf-content");
+                pdfContent.style.display = "block";
+
+                // Generate PDF using html2pdf library
+                html2pdf()
+                    .from(pdfContent)
+                    .set({
+                        margin: 0,
+                        filename: 'application_form.pdf',
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: { scale: 2 },
+                        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    })
+                    .save()
+                    .then(() => {
+                        pdfContent.style.display = "none"; // Hide the PDF content div after saving
+                    });
+            }
+
+            window.previewContent = function() {
+                // Get the content from the textarea and title
+                if (!validateInput()) return;
+
+                const applicationText = document.getElementById("applicationText").value;
+                const documentTitle = document.getElementById("documentTitle").value;
+
+                // Set the preview title and content
+                const previewTitle = document.getElementById("previewTitle");
+                const previewFormContent = document.getElementById("previewFormContent");
+                previewTitle.innerText = documentTitle || "Application Form"; // Default title if none provided
+                previewFormContent.innerText = applicationText;
+
+                // Show the preview content div
+                const previewContent = document.getElementById("preview-content");
+                previewContent.style.display = "block";
+            }
+        }
+    </script> <!-- Footer with copyright and contact --> 
+  <footer> 
+   <p>© 2024 Malaram. All rights reserved.</p> 
+   <p>Contact: 8302776659</p> 
+  </footer> 
+ </body>
+</html>
